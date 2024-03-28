@@ -21,7 +21,7 @@ int main()
 
     if (mode == operating_mode::manual_mode)
     {
-        cout << "Выбран ручной режим:" << endl
+        mout << "Выбран ручной режим:" << endl
              << endl;
 
         int m1 = prompt_int("Введите прядок СЛАУ (размерность квадратной матрицы А) (минимум 2): ", 2);
@@ -42,14 +42,14 @@ int main()
     }
     else if (mode == operating_mode::random_mode)
     {
-        cout << "Выбран режим случайного задания СЛАУ:" << endl
+        mout << "Выбран режим случайного задания СЛАУ:" << endl
              << endl;
 
         uniform_int_distribution<int> uid(2, 8);
 
         int m2 = uid(rng);
 
-        cout << "Случайная размерность M = " << m2 << endl
+        mout << "Случайная размерность M = " << m2 << endl
              << endl;
 
         augmented_matrix *am2 = new augmented_matrix(m2, m2);
