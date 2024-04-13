@@ -5,10 +5,17 @@
 #include <random>
 #include <fstream>
 #include <ctime>
+#include <string>
 
 using namespace std;
 
 const double EPS = 1E-9;
+
+enum am_coeff_type
+{
+    variable_coefficient,
+    free_member,
+};
 
 enum am_print_mode
 {
@@ -49,6 +56,111 @@ public:
         {
             this->current_matrix.at(i).resize(this->n);
             this->matrix.at(i).resize(this->n);
+        }
+    }
+
+    augmented_matrix(const char *filepath)
+    {
+        try
+        {
+            ifstream fin(filepath);
+
+            if (fin.is_open())
+            {
+                char symbol;
+
+                string word;
+
+                am_coeff_type coeff_type = am_coeff_type::variable_coefficient;
+
+                bool at_spaces = false;
+                int m = 0, n = 0;
+
+                while (fin.get(symbol))
+                {
+                    if (symbol == ' ')
+                    {
+                        if (!at_spaces)
+                        {
+                            n += 1;
+                        }
+
+                        at_spaces = true;
+
+                        word.clear();
+                    }
+                    else if (symbol == '\n')
+                    {
+                        m += 1;
+
+                        n = 0;
+                    }
+                    else if (symbol == '|')
+                    {
+                        // ignore
+                    }
+                    else
+                    {
+                        at_spaces = false;
+
+                        word += symbol;
+                    }
+
+                    if (word.length() > 0)
+                    {
+                        mout << "\t(" << word << ")"
+                             << "\tn = " << n << "\tm = " << m << endl;
+                        ;
+                    }
+                }
+
+                mout << "Предоставленный файл матрицы соответствует шаблону" << endl
+                     << endl;
+
+                // validation loop
+                // while (fin >> word)
+                // {
+                //     if (word == "|")
+                //     {
+                //         coeff_type = am_coeff_type::variable_coefficient;
+                //     }
+                //     else
+                //     {
+                //         try
+                //         {
+                //             if(coeff_type = am_coeff_type::)
+                //             m += 1;
+                //             stof(word);
+                //         }
+                //         catch (exception &e)
+                //         {
+                //             throw runtime_error("При чтении коэффициентов СЛАУ из файла встречено не число");
+                //         }
+                //     }
+
+                //     mout << line << endl;
+                // }
+
+                // word.clear();
+
+                // fin.close();
+
+                // fin.open(filepath);
+
+                // // writing loop
+                // while (getline(fin, line))
+                // {
+                //     mout << line << endl;
+                // }
+            }
+            else
+            {
+                throw runtime_error("Не удалось открыть файл для чтения");
+            }
+        }
+        catch (exception &e)
+        {
+            cout << "[Ошибка]:\t" << e.what() << endl;
         }
     }
 
@@ -428,7 +540,7 @@ public:
 
                 for (k = n - 1; k >= 0; k--)
                 {
-                    mout << "[Действ.]\tX[" << k + 1 << "] = y[" << k << "] = " << y[k + 1] << endl
+                    mout << "[Действ.]\tX[" << k + 1 << "] = Y[" << k << "] = " << y[k + 1] << endl
                          << endl;
 
                     (*x)[k] = y[k];

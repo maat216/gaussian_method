@@ -64,6 +64,13 @@ int main()
 
         am2->print_roots();
     }
+    else if (mode == operating_mode::file_mode)
+    {
+        mout << "Выбран режим чтения из файла input.txt:" << endl
+             << endl;
+
+        augmented_matrix *am3 = new augmented_matrix("input.txt");
+    }
 
     cin.get();
 
