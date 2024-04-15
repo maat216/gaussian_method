@@ -74,13 +74,15 @@ public:
                 am_coeff_type coeff_type = am_coeff_type::variable_coefficient;
 
                 bool at_spaces = false;
-                int m = 0, n = 0;
+                bool free_member_read = false;
+                am_coeff_type mode = am_coeff_type::variable_coefficient;
+                int m = 0, n = 0, columns = 0;
 
                 while (fin.get(symbol))
                 {
                     if (symbol == ' ')
                     {
-                        if (!at_spaces)
+                        if (!at_spaces && mode == am_coeff_type::variable_coefficient)
                         {
                             n += 1;
                         }
@@ -91,13 +93,27 @@ public:
                     }
                     else if (symbol == '\n')
                     {
+                        mode = am_coeff_type::variable_coefficient;
+
+                        if (columns == 0)
+                        {
+                            columns = n;
+                        }
+
+                        if (columns != 0 && n != columns)
+                        {
+                            throw runtime_error("Уравнения из файла имеют разную размерность");
+                        }
+
                         m += 1;
 
                         n = 0;
+
+                        free_member_read = false;
                     }
                     else if (symbol == '|')
                     {
-                        // ignore
+                        mode = am_coeff_type::free_member;
                     }
                     else
                     {
@@ -108,10 +124,43 @@ public:
 
                     if (word.length() > 0)
                     {
+                        try
+                        {
+                            stof(word);
+                        }
+                        catch (exception &e)
+                        {
+                            throw runtime_error("Встречено не число");
+                        }
+
+                        if (mode == am_coeff_type::free_member)
+                        {
+                            free_member_read = true;
+                        }
+
+                        if (free_member_read)
+                        {
+                            throw runtime_error("Встречено больше одного свободного члена в уравнении");
+                        }
+
                         mout << "\t(" << word << ")"
                              << "\tn = " << n << "\tm = " << m << endl;
                         ;
                     }
+                }
+
+                if (fin.eof())
+                {
+                    m += 1;
+
+                    mout << "\t(" << word << ")"
+                         << "\tn = " << n << "\tm = " << m << endl;
+                    ;
+                }
+
+                if (m != n)
+                {
+                    throw runtime_error("СЛАУ с количеством неизвестных отличных от количества уравнений не поддерживаются");
                 }
 
                 mout << "Предоставленный файл матрицы соответствует шаблону" << endl
