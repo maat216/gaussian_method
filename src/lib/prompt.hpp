@@ -26,7 +26,7 @@ reprompt:
 
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
 
-            throw "Error while reading input";
+            throw "Ошибка при обработке ввода";
         }
 
         return value;
@@ -59,7 +59,7 @@ reprompt:
 
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
 
-            throw "Error while reading input";
+            throw "Ошибка при обработке ввода";
         }
 
         if (value < min)
