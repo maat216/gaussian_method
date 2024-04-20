@@ -34,7 +34,6 @@ private:
     vector<vector<double>> matrix;
     vector<vector<double>> current_matrix;
     vector<double> roots;
-    ofstream fout;
 
 public:
     augmented_matrix()
@@ -69,138 +68,123 @@ public:
             {
                 char symbol;
 
-                string word;
+                string word, line;
 
                 am_coeff_type coeff_type = am_coeff_type::variable_coefficient;
 
                 bool at_spaces = false;
                 bool free_member_read = false;
                 am_coeff_type mode = am_coeff_type::variable_coefficient;
-                int m = 0, n = 0, columns = 0;
+                int rows = 0, n = 0, columns = 0;
 
-                while (fin.get(symbol))
+                while (getline(fin, line))
                 {
-                    if (symbol == ' ')
+                    cout << line << endl;
+
+                    istringstream iss(line);
+
+                    while (iss >> word)
                     {
-                        if (!at_spaces && mode == am_coeff_type::variable_coefficient)
+                        if (word != "|")
                         {
-                            n += 1;
+                            try
+                            {
+                                stof(word);
+                            }
+                            catch (exception &e)
+                            {
+                                throw runtime_error("Встречено не число");
+                            }
+
+                            if (mode == am_coeff_type::variable_coefficient)
+                            {
+                                n += 1;
+                            }
+
+                            if (mode == am_coeff_type::free_member && free_member_read)
+                            {
+                                throw runtime_error("Встречено больше одного свободного члена в уравнении");
+                            }
+
+                            if (mode == am_coeff_type::free_member)
+                            {
+                                free_member_read = true;
+                            }
                         }
 
-                        at_spaces = true;
-
-                        word.clear();
-                    }
-                    else if (symbol == '\n')
-                    {
-                        mode = am_coeff_type::variable_coefficient;
-
-                        if (columns == 0)
+                        if (word == "|")
                         {
-                            columns = n;
+                            mode = am_coeff_type::free_member;
                         }
-
-                        if (columns != 0 && n != columns)
-                        {
-                            throw runtime_error("Уравнения из файла имеют разную размерность");
-                        }
-
-                        m += 1;
-
-                        n = 0;
-
-                        free_member_read = false;
-                    }
-                    else if (symbol == '|')
-                    {
-                        mode = am_coeff_type::free_member;
-                    }
-                    else
-                    {
-                        at_spaces = false;
-
-                        word += symbol;
                     }
 
-                    if (word.length() > 0)
+                    rows += 1;
+
+                    if (columns != 0 && columns != n)
                     {
-                        try
-                        {
-                            stof(word);
-                        }
-                        catch (exception &e)
-                        {
-                            throw runtime_error("Встречено не число");
-                        }
-
-                        if (mode == am_coeff_type::free_member)
-                        {
-                            free_member_read = true;
-                        }
-
-                        if (free_member_read)
-                        {
-                            throw runtime_error("Встречено больше одного свободного члена в уравнении");
-                        }
-
-                        mout << "\t(" << word << ")"
-                             << "\tn = " << n << "\tm = " << m << endl;
-                        ;
+                        throw runtime_error("Уравнения из файла имеют разную размерность");
                     }
+
+                    columns = n;
+
+                    n = 0;
+
+                    free_member_read = false;
+
+                    mode = am_coeff_type::variable_coefficient;
                 }
 
-                if (fin.eof())
-                {
-                    m += 1;
-
-                    mout << "\t(" << word << ")"
-                         << "\tn = " << n << "\tm = " << m << endl;
-                    ;
-                }
-
-                if (m != n)
+                if (columns != rows)
                 {
                     throw runtime_error("СЛАУ с количеством неизвестных отличных от количества уравнений не поддерживаются");
                 }
 
-                mout << "Предоставленный файл матрицы соответствует шаблону" << endl
+                mout << endl
+                     << "Предоставленный файл матрицы соответствует шаблону" << endl
                      << endl;
 
-                // validation loop
-                // while (fin >> word)
-                // {
-                //     if (word == "|")
-                //     {
-                //         coeff_type = am_coeff_type::variable_coefficient;
-                //     }
-                //     else
-                //     {
-                //         try
-                //         {
-                //             if(coeff_type = am_coeff_type::)
-                //             m += 1;
-                //             stof(word);
-                //         }
-                //         catch (exception &e)
-                //         {
-                //             throw runtime_error("При чтении коэффициентов СЛАУ из файла встречено не число");
-                //         }
-                //     }
+                mode = am_coeff_type::variable_coefficient;
 
-                //     mout << line << endl;
-                // }
+                fin.close();
+                fin.open(filepath);
 
-                // word.clear();
+                this->m = rows;
+                this->n = columns + 1;
 
-                // fin.close();
+                this->roots.resize(m);
 
-                // fin.open(filepath);
+                this->matrix.resize(m);
+                this->current_matrix.resize(m);
 
-                // // writing loop
-                // while (getline(fin, line))
-                // {
-                //     mout << line << endl;
-                // }
+                for (int i = 0; i < m; i++)
+                {
+                    this->current_matrix.at(i).resize(this->n);
+                    this->matrix.at(i).resize(this->n);
+                }
+
+                word.clear();
+                line.clear();
+
+                const int estimated = rows * columns;
+
+                for (int r = 0; r < this->m;)
+                {
+                    for (int c = 0; c < this->n;)
+                    {
+                        fin >> word;
+
+                        if (word != "|")
+                        {
+                            this->current_matrix[r][c] = this->matrix[r][c] = stof(word);
+
+                            c += 1;
+                        }
+                    }
+
+                    r += 1;
+                }
+
+                this->calculate_ranks();
             }
             else
             {
@@ -209,7 +193,8 @@ public:
         }
         catch (exception &e)
         {
-            cout << "[Ошибка]:\t" << e.what() << endl;
+            cout << endl
+                 << "[Ошибка]:\t" << e.what() << endl;
         }
     }
 
@@ -587,15 +572,27 @@ public:
                 mout << "[Действ.]\tОбратный ход" << endl
                      << endl;
 
+                this->print(am_print_mode::current);
+
                 for (k = n - 1; k >= 0; k--)
                 {
-                    mout << "[Действ.]\tX[" << k + 1 << "] = Y[" << k << "] = " << y[k + 1] << endl
-                         << endl;
-
                     (*x)[k] = y[k];
 
+                    if (k > 0)
+                    {
+                        mout << "Уравнение №" << k + 1 << ":" << endl
+                             << endl;
+                    }
+
                     for (int i = 0; i < k; i++)
+                    {
+                        mout << "\tY[" << i + 1 << "] (" << y[i] << ") - A[" << i + 1 << "][" << k + 1 << "] (" << (*a)[i][k] << ") * X[" << k + 1 << "] (" << (*x)[k] << ") = ";
+
                         y[i] = y[i] - (*a)[i][k] * (*x)[k];
+
+                        mout << y[i] << endl
+                             << endl;
+                    }
                 }
 
                 return;
