@@ -58,6 +58,18 @@ public:
         }
     }
 
+    bool is_number(const std::string &s)
+    {
+        string::const_iterator it = s.begin();
+
+        while (it != s.end() && std::isdigit(*it))
+        {
+            ++it;
+        }
+
+        return !s.empty() && it == s.end();
+    }
+
     augmented_matrix(const char *filepath)
     {
         try
@@ -87,11 +99,9 @@ public:
                     {
                         if (word != "|")
                         {
-                            try
-                            {
-                                stof(word);
-                            }
-                            catch (exception &e)
+                            const bool valid = this->is_number(word);
+
+                            if (!valid)
                             {
                                 throw runtime_error("Встречено не число");
                             }
@@ -195,6 +205,8 @@ public:
         {
             cout << endl
                  << "[Ошибка]:\t" << e.what() << endl;
+
+            exit(-1);
         }
     }
 
