@@ -193,8 +193,6 @@ public:
 
                     r += 1;
                 }
-
-                this->calculate_ranks();
             }
             else
             {
