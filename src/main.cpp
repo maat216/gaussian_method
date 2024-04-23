@@ -71,6 +71,8 @@ int main()
 
         augmented_matrix *am3 = new augmented_matrix("input.txt");
 
+        am3->calculate_ranks();
+
         am3->print(am_print_mode::current);
 
         am3->solve();
